@@ -5,7 +5,7 @@
 
 - **جمع الأخبار**: مصادر RSS مختارة (`scripts/tech-radar/sources.mjs`) +
   أعلى قصص Hacker News خلال آخر 36 ساعة.
-- **التلخيص والتصنيف**: GPT (عبر `OPENAI_API_KEY`) يصنف ويلخص أهم الأخبار
+- **التلخيص والتصنيف**: Claude (عبر `ANTHROPIC_API_KEY`) يصنف ويلخص أهم الأخبار
   بالعربية إلى نشرة منظمة بستة أقسام؛ بدون المفتاح يعمل تجميع احتياطي بدون AI.
 - **النشر**: مهمة GitHub Actions يومية تكتب النشرة إلى Supabase.
 - **العرض**: واجهة React خفيفة بدون تسجيل دخول، تقرأ من Supabase بشكل عام
@@ -19,7 +19,7 @@
 ## البنية
 
 ```
-scripts/tech-radar/     سكربت التوليد اليومي (Node، RSS + HN + OpenAI + Supabase)
+scripts/tech-radar/     سكربت التوليد اليومي (Node، RSS + HN + Claude + Supabase)
 supabase/migrations/    مخطط قاعدة البيانات (digests فقط، قراءة عامة)
 src/                    الواجهة الأمامية (Vite + React + TypeScript + Tailwind)
 .github/workflows/      مهمة التوليد اليومي + نشر GitHub Pages

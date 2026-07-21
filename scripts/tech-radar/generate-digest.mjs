@@ -1,16 +1,16 @@
 // Fetches tech/AI/marketing news from curated RSS feeds + Hacker News,
-// curates it into an Arabic daily digest (via OpenAI when available,
+// curates it into an Arabic daily digest (via Claude when available,
 // otherwise a plain grouped fallback), and publishes it to Supabase.
 //
 // Usage: node generate-digest.mjs
 // Required env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-// Optional env: OPENAI_API_KEY, OPENAI_MODEL (default gpt-4o-mini), LOOKBACK_HOURS (default 36)
+// Optional env: ANTHROPIC_API_KEY, CLAUDE_MODEL (default claude-haiku-4-5-20251001), LOOKBACK_HOURS (default 36)
 
 import Parser from 'rss-parser'
 import { RSS_SOURCES, HACKER_NEWS_API } from './sources.mjs'
 
 const LOOKBACK_HOURS = Number(process.env.LOOKBACK_HOURS || 36)
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001'
 const CATEGORIES = ['ai_breakthroughs', 'big_tech', 'products', 'funding', 'articles', 'marketing']
 const CATEGORY_LABELS = {
   ai_breakthroughs: 'أبرز تطورات الذكاء الاصطناعي',
@@ -120,8 +120,14 @@ function fallbackCurate(items) {
   return { headline: '', sections, generated_by: 'raw' }
 }
 
+function extractJson(text) {
+  // Claude sometimes wraps JSON in a ```json fence even when not asked to.
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+  return JSON.parse(fenced ? fenced[1] : text)
+}
+
 async function curateWithAI(items) {
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return null
 
   const listing = items
@@ -130,23 +136,28 @@ async function curateWithAI(items) {
 
   const system = `أنت محرر نشرة تقنية يومية لمهندس برمجيات وصاحب شركة تقنية. مهمتك اختيار أهم الأخبار من قائمة خام وتنظيمها في نشرة عربية موجزة ومفيدة، تشمل: أهم تطورات الذكاء الاصطناعي، تحركات الشركات الكبرى (OpenAI, Google, Microsoft, Meta, Apple, Amazon, Anthropic...), منتجات وإطلاقات جديدة، تمويل واستحواذ، مقالات تستحق القراءة، وأخبار التسويق والنمو. اختر فقط الأخبار المهمة والحقيقية الموجودة في القائمة، لا تختلق أخبارًا. اكتب بالعربية الفصحى المبسطة مع إبقاء أسماء الشركات والمنتجات بالإنجليزية.`
 
-  const user = `القائمة الخام (عنوان — مصدر — رابط):\n${listing}\n\nأخرج JSON بالشكل التالي فقط:\n{\n  "headline": "ملخص عام قصير (2-3 جمل) لأهم ما حدث اليوم",\n  "sections": [\n    { "key": "ai_breakthroughs|big_tech|products|funding|articles|marketing", "items": [ { "title": "عنوان مختصر", "summary": "جملة واحدة توضح لماذا هذا الخبر مهم", "url": "الرابط كما هو من القائمة", "source": "اسم المصدر" } ] }\n  ]\n}\nاختر ٣ إلى ٨ عناصر لكل قسم ذي صلة فقط، واحذف الأقسام الفارغة. لا تُرجع أي نص خارج JSON.`
+  const user = `القائمة الخام (عنوان — مصدر — رابط):\n${listing}\n\nأخرج JSON بالشكل التالي فقط، بدون أي نص أو markdown خارج الـ JSON:\n{\n  "headline": "ملخص عام قصير (2-3 جمل) لأهم ما حدث اليوم",\n  "sections": [\n    { "key": "ai_breakthroughs|big_tech|products|funding|articles|marketing", "items": [ { "title": "عنوان مختصر", "summary": "جملة واحدة توضح لماذا هذا الخبر مهم", "url": "الرابط كما هو من القائمة", "source": "اسم المصدر" } ] }\n  ]\n}\nاختر ٣ إلى ٨ عناصر لكل قسم ذي صلة فقط، واحذف الأقسام الفارغة.`
 
   try {
-    const res = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
       body: JSON.stringify({
-        model: OPENAI_MODEL,
-        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-        response_format: { type: 'json_object' },
+        model: CLAUDE_MODEL,
+        system,
+        messages: [{ role: 'user', content: user }],
         temperature: 0.3,
         max_tokens: 3000,
       }),
     }, 45000)
-    if (!res.ok) throw new Error(`OpenAI ${res.status}: ${await res.text()}`)
+    if (!res.ok) throw new Error(`Claude ${res.status}: ${await res.text()}`)
     const json = await res.json()
-    const parsed = JSON.parse(json.choices[0].message.content)
+    const text = json.content?.[0]?.text || ''
+    const parsed = extractJson(text)
     if (!Array.isArray(parsed.sections)) throw new Error('malformed sections')
 
     const validUrls = new Set(items.map((i) => i.url))
