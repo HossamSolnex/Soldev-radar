@@ -4,7 +4,7 @@ import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/soldev-radar/',
+  base: '/Soldev-radar/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
