@@ -22,7 +22,7 @@
 | `SUPABASE_URL` | يُستخدم في كل من سكربت التوليد وبناء الواجهة (كـ `VITE_SUPABASE_URL`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | لسكربت التوليد اليومي فقط — يتجاوز RLS للكتابة |
 | `SUPABASE_ANON_KEY` | يُستخدم في بناء الواجهة (كـ `VITE_SUPABASE_ANON_KEY`) — آمن للعرض العام |
-| `OPENAI_API_KEY` | اختياري لكن موصى به — لتفعيل تلخيص وتصنيف الأخبار بالذكاء الاصطناعي |
+| `ANTHROPIC_API_KEY` | اختياري لكن موصى به — لتفعيل تلخيص وتصنيف الأخبار عبر Claude |
 
 > **تنبيه أمني:** `SUPABASE_SERVICE_ROLE_KEY` يتجاوز كل صلاحيات RLS — لا تضعه
 > أبدًا في كود الواجهة الأمامية، فقط في GitHub Secrets حيث يُستخدم داخل مهمة
@@ -41,7 +41,7 @@ cd scripts/tech-radar
 npm install
 SUPABASE_URL=https://your-project.supabase.co \
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key \
-OPENAI_API_KEY=sk-... \
+ANTHROPIC_API_KEY=sk-ant-... \
 node generate-digest.mjs
 ```
 
