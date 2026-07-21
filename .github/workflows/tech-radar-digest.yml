@@ -1,0 +1,32 @@
+name: Tech & AI Daily Radar
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 06:00 Cairo time (UTC+2)
+  workflow_dispatch: {}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/tech-radar/package.json
+
+      - name: Install dependencies
+        working-directory: scripts/tech-radar
+        run: npm install
+
+      - name: Generate & publish digest
+        working-directory: scripts/tech-radar
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node generate-digest.mjs

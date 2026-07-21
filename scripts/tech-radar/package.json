@@ -1,0 +1,13 @@
+{
+  "name": "tech-radar-digest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fetches tech/AI/marketing news and publishes a daily curated digest to Supabase",
+  "scripts": {
+    "generate": "node generate-digest.mjs"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  }
+}
