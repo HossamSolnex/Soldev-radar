@@ -121,9 +121,14 @@ function fallbackCurate(items) {
 }
 
 function extractJson(text) {
-  // Claude sometimes wraps JSON in a ```json fence even when not asked to.
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
-  return JSON.parse(fenced ? fenced[1] : text)
+  // Claude sometimes wraps JSON in a ```json fence (occasionally without a
+  // closing fence if the response gets cut off), so strip fence markers
+  // from either end rather than requiring a matched pair.
+  const stripped = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/, '')
+  return JSON.parse(stripped)
 }
 
 async function curateWithAI(items) {
@@ -151,7 +156,7 @@ async function curateWithAI(items) {
         system,
         messages: [{ role: 'user', content: user }],
         temperature: 0.3,
-        max_tokens: 3000,
+        max_tokens: 4096,
       }),
     }, 45000)
     if (!res.ok) throw new Error(`Claude ${res.status}: ${await res.text()}`)
@@ -227,7 +232,9 @@ async function main() {
   console.log(`[tech-radar] published digest for ${digest.digest_date}`)
 }
 
-main().catch((err) => {
-  console.error('[tech-radar] fatal:', err)
-  process.exit(1)
-})
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error('[tech-radar] fatal:', err)
+    process.exit(1)
+  })
