@@ -11,7 +11,7 @@ import { RSS_SOURCES, HACKER_NEWS_API } from './sources.mjs'
 
 const LOOKBACK_HOURS = Number(process.env.LOOKBACK_HOURS || 36)
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001'
-const CATEGORIES = ['ai_breakthroughs', 'big_tech', 'products', 'funding', 'articles', 'marketing']
+const CATEGORIES = ['ai_breakthroughs', 'big_tech', 'products', 'funding', 'articles', 'marketing', 'self_storage']
 const CATEGORY_LABELS = {
   ai_breakthroughs: 'أبرز تطورات الذكاء الاصطناعي',
   big_tech: 'تحركات الشركات الكبرى',
@@ -19,6 +19,7 @@ const CATEGORY_LABELS = {
   funding: 'تمويل واستحواذ',
   articles: 'مقالات تستحق القراءة',
   marketing: 'تسويق ونمو',
+  self_storage: 'التخزين الذاتي',
 }
 
 const parser = new Parser({ timeout: 15000 })
@@ -139,9 +140,9 @@ async function curateWithAI(items) {
     .map((i, idx) => `${idx + 1}. [${i.source}] ${i.title} — ${i.snippet} (${i.url})`)
     .join('\n')
 
-  const system = `أنت محرر نشرة تقنية يومية لمهندس برمجيات وصاحب شركة تقنية. مهمتك اختيار أهم الأخبار من قائمة خام وتنظيمها في نشرة عربية موجزة ومفيدة، تشمل: أهم تطورات الذكاء الاصطناعي، تحركات الشركات الكبرى (OpenAI, Google, Microsoft, Meta, Apple, Amazon, Anthropic...), منتجات وإطلاقات جديدة، تمويل واستحواذ، مقالات تستحق القراءة، وأخبار التسويق والنمو. اختر فقط الأخبار المهمة والحقيقية الموجودة في القائمة، لا تختلق أخبارًا. اكتب بالعربية الفصحى المبسطة مع إبقاء أسماء الشركات والمنتجات بالإنجليزية.`
+  const system = `أنت محرر نشرة تقنية يومية لمهندس برمجيات وصاحب شركة تقنية (تشمل اهتماماته أيضًا صناعة التخزين الذاتي/self-storage كقطاع عمل). مهمتك اختيار أهم الأخبار من قائمة خام وتنظيمها في نشرة عربية موجزة ومفيدة، تشمل: أهم تطورات الذكاء الاصطناعي، تحركات الشركات الكبرى (OpenAI, Google, Microsoft, Meta, Apple, Amazon, Anthropic...), منتجات وإطلاقات جديدة، تمويل واستحواذ، مقالات تستحق القراءة، أخبار التسويق والنمو، وأخبار صناعة التخزين الذاتي (self-storage: منشآت ووحدات التخزين، اتجاهات السوق والاستثمار، حلول تقنية جديدة للقطاع مثل الأقفال الذكية وأنظمة الإدارة والدخول الذاتي). اختر فقط الأخبار المهمة والحقيقية الموجودة في القائمة، لا تختلق أخبارًا. اكتب بالعربية الفصحى المبسطة مع إبقاء أسماء الشركات والمنتجات بالإنجليزية.`
 
-  const user = `القائمة الخام (عنوان — مصدر — رابط):\n${listing}\n\nأخرج JSON بالشكل التالي فقط، بدون أي نص أو markdown خارج الـ JSON:\n{\n  "headline": "ملخص عام قصير (2-3 جمل) لأهم ما حدث اليوم",\n  "sections": [\n    { "key": "ai_breakthroughs|big_tech|products|funding|articles|marketing", "items": [ { "title": "عنوان مختصر", "summary": "جملة واحدة توضح لماذا هذا الخبر مهم", "url": "الرابط كما هو من القائمة", "source": "اسم المصدر" } ] }\n  ]\n}\nاختر ٣ إلى ٨ عناصر لكل قسم ذي صلة فقط، واحذف الأقسام الفارغة.`
+  const user = `القائمة الخام (عنوان — مصدر — رابط):\n${listing}\n\nأخرج JSON بالشكل التالي فقط، بدون أي نص أو markdown خارج الـ JSON:\n{\n  "headline": "ملخص عام قصير (2-3 جمل) لأهم ما حدث اليوم",\n  "sections": [\n    { "key": "ai_breakthroughs|big_tech|products|funding|articles|marketing|self_storage", "items": [ { "title": "عنوان مختصر", "summary": "جملة واحدة توضح لماذا هذا الخبر مهم", "url": "الرابط كما هو من القائمة", "source": "اسم المصدر" } ] }\n  ]\n}\nاختر ٣ إلى ٨ عناصر لكل قسم ذي صلة فقط، واحذف الأقسام الفارغة. لقسم self_storage تحديدًا: ركّز على حلول تقنية جديدة للتخزين الذاتي واتجاهات السوق حتى لو عدد العناصر قليل.`
 
   try {
     const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
