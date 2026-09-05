@@ -157,7 +157,7 @@ async function curateWithAI(items) {
         system,
         messages: [{ role: 'user', content: user }],
         temperature: 0.3,
-        max_tokens: 4096,
+        max_tokens: 8192,
       }),
     }, 90000)
     if (!res.ok) throw new Error(`Claude ${res.status}: ${await res.text()}`)
