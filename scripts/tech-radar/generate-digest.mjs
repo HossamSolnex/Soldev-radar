@@ -159,7 +159,7 @@ async function curateWithAI(items) {
         temperature: 0.3,
         max_tokens: 4096,
       }),
-    }, 45000)
+    }, 90000)
     if (!res.ok) throw new Error(`Claude ${res.status}: ${await res.text()}`)
     const json = await res.json()
     const text = json.content?.[0]?.text || ''
