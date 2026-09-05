@@ -25,6 +25,12 @@ export const RSS_SOURCES = [
   { name: 'Search Engine Land', url: 'https://searchengineland.com/feed', hint: 'marketing' },
   { name: 'Social Media Today', url: 'https://www.socialmediatoday.com/rss.xml', hint: 'marketing' },
   { name: 'Marketing Dive', url: 'https://www.marketingdive.com/feeds/news/', hint: 'marketing' },
+
+  // ── Self-Storage Industry ───────────────────────────────────────────────
+  { name: 'Storage Rebellion', url: 'https://storagerebellion.com/feed/', hint: 'self_storage' },
+  { name: 'REBusinessOnline - Self-Storage', url: 'https://rebusinessonline.com/category/self-storage/feed/', hint: 'self_storage' },
+  { name: 'Google News - Self-Storage Industry', url: 'https://news.google.com/rss/search?q=%22self+storage%22+industry+when:2d&hl=en-US&gl=US&ceid=US:en', hint: 'self_storage' },
+  { name: 'Google News - Self-Storage Technology', url: 'https://news.google.com/rss/search?q=%22self+storage%22+(technology+OR+software+OR+%22smart+lock%22)+when:2d&hl=en-US&gl=US&ceid=US:en', hint: 'self_storage' },
 ]
 
 export const HACKER_NEWS_API = 'https://hacker-news.firebaseio.com/v0'

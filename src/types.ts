@@ -5,6 +5,7 @@ export type TechRadarCategory =
   | 'funding'
   | 'articles'
   | 'marketing'
+  | 'self_storage'
 
 export interface TechRadarItem {
   title: string

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { getBookmarks, isBookmarked, toggleBookmark } from '@/lib/bookmarks'
 import {
-  Rss, Sparkles, Building2, Rocket, Coins, Newspaper, Megaphone,
+  Rss, Sparkles, Building2, Rocket, Coins, Newspaper, Megaphone, Warehouse,
   Bookmark, BookmarkCheck, ExternalLink, ChevronRight, ChevronLeft, RefreshCw,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -16,6 +16,7 @@ const CATEGORY_META: Record<TechRadarCategory, { label: string; icon: typeof Spa
   funding: { label: 'تمويل واستحواذ', icon: Coins, color: 'text-yellow-400 bg-yellow-400/10' },
   articles: { label: 'مقالات تستحق القراءة', icon: Newspaper, color: 'text-purple-400 bg-purple-400/10' },
   marketing: { label: 'تسويق ونمو', icon: Megaphone, color: 'text-rose-400 bg-rose-400/10' },
+  self_storage: { label: 'التخزين الذاتي', icon: Warehouse, color: 'text-orange-400 bg-orange-400/10' },
 }
 
 function ItemRow({ item, onToggle, saved }: { item: TechRadarItem; onToggle: (item: TechRadarItem) => void; saved: boolean }) {
